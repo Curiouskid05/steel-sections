@@ -1,0 +1,352 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#e0661b">
+<meta name="description" content="Australian steel sections: dimensions, kg/m, paint area and section properties, with weight calculators.">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Sections">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<title>Steel Sections</title>
+<style>
+/* Layout: searchable section list beside a detail sheet (drawing, dimensions, properties, quantity calc) */
+:root{
+  --bg:#f4f5f7; --panel:#ffffff; --panel2:#f0f2f5; --text:#1b1f24; --muted:#667085; --border:#dde1e7;
+  --accent:#e0661b; --accent-soft:#fde9dc; --steel:#c9d0d8; --steel-edge:#3b4450; --dim:#2563eb;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#111418; --panel:#181c21; --panel2:#1f242a; --text:#e6e8eb; --muted:#8b95a3; --border:#2b313a;
+    --accent:#ff8a3d; --accent-soft:#3a2415; --steel:#3a4450; --steel-edge:#c9d0d8; --dim:#60a5fa; color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#111418; --panel:#181c21; --panel2:#1f242a; --text:#e6e8eb; --muted:#8b95a3; --border:#2b313a;
+  --accent:#ff8a3d; --accent-soft:#3a2415; --steel:#3a4450; --steel-edge:#c9d0d8; --dim:#60a5fa; color-scheme:dark;
+}
+*{box-sizing:border-box}
+html,body{margin:0;min-height:100%;background:var(--bg);color:var(--text);font:14px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+button,input,select{font:inherit;color:inherit}
+button{background:var(--panel2);border:1px solid var(--border);border-radius:6px;padding:5px 10px;cursor:pointer;white-space:nowrap}
+button:hover{border-color:var(--muted)}
+input{background:var(--panel2);border:1px solid var(--border);border-radius:7px;padding:6px 9px;min-width:0}
+input:focus,button:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+header{display:flex;align-items:center;gap:10px;padding:8px 16px;background:var(--panel);border-bottom:1px solid var(--border);flex-wrap:wrap}
+header h1{font-size:15px;margin:0 8px 0 0;font-weight:700}
+header h1 span{color:var(--accent)}
+header .grow{flex:1}
+.home{color:var(--muted);text-decoration:none;font-weight:600;white-space:nowrap}
+.wrap{max-width:1240px;margin:0 auto;padding:16px;display:grid;grid-template-columns:320px minmax(0,1fr);gap:16px;align-items:start}
+.panel{background:var(--panel);border:1px solid var(--border);border-radius:12px}
+.listpanel{display:flex;flex-direction:column;max-height:calc(100vh - 90px);position:sticky;top:12px}
+.search{padding:12px;border-bottom:1px solid var(--border);display:grid;gap:8px}
+.search input{width:100%;font-size:15px}
+.chips{display:flex;flex-wrap:wrap;gap:5px}
+.chips button{font-size:12px;padding:2px 9px;border-radius:999px}
+.chips button.on{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:600}
+.list{overflow:auto;flex:1;min-height:120px}
+.item{display:flex;justify-content:space-between;gap:8px;padding:7px 12px;border-bottom:1px solid var(--border);cursor:pointer}
+.item:hover{background:var(--panel2)}
+.item.on{background:var(--accent-soft);box-shadow:inset 3px 0 var(--accent)}
+.item b{font-weight:600}
+.item span{color:var(--muted);font-variant-numeric:tabular-nums;white-space:nowrap}
+.grp{padding:6px 12px;font-size:11px;letter-spacing:.5px;text-transform:uppercase;color:var(--muted);background:var(--panel2);border-bottom:1px solid var(--border);position:sticky;top:0}
+.detail{display:grid;gap:16px;min-width:0}
+.head{padding:14px 16px;display:flex;gap:16px;align-items:flex-end;flex-wrap:wrap}
+.head h2{margin:0;font-size:24px;letter-spacing:-.3px}
+.head .sub{color:var(--muted)}
+.head .big{margin-left:auto;text-align:right}
+.head .big b{display:block;font-size:26px;font-variant-numeric:tabular-nums}
+.head .big small{color:var(--muted)}
+.cols{display:grid;grid-template-columns:minmax(0,300px) minmax(0,1fr);gap:16px}
+.draw{padding:10px;display:flex;align-items:center;justify-content:center}
+.draw svg{width:100%;height:auto;max-height:340px}
+.sec{padding:12px 16px}
+.sec h3{margin:0 0 6px;font-size:12px;text-transform:uppercase;letter-spacing:.5px;color:var(--muted)}
+table{border-collapse:collapse;width:100%}
+td,th{padding:5px 6px;border-bottom:1px solid var(--border);text-align:left}
+td.num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap;cursor:copy}
+td.num:hover{background:var(--panel2)}
+td.sym{color:var(--muted);font-style:italic;font-family:Georgia,serif;white-space:nowrap}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:0 24px}
+.calc{display:flex;gap:10px;flex-wrap:wrap;align-items:end}
+.calc label{display:grid;gap:3px;font-size:12px;color:var(--muted)}
+.calc input{width:120px}
+.out{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:8px;margin-top:10px}
+.out div{background:var(--panel2);border-radius:8px;padding:8px 10px}
+.out small{display:block;color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.4px}
+.out b{font-size:17px;font-variant-numeric:tabular-nums}
+.note{color:var(--muted);font-size:12px;padding:0 16px 12px}
+.toast{position:fixed;right:16px;bottom:16px;background:var(--text);color:var(--bg);padding:7px 12px;border-radius:8px;font-weight:600;opacity:0;transition:opacity .2s;pointer-events:none}
+.toast.show{opacity:1}
+@media (max-width:900px){ .wrap{grid-template-columns:1fr} .listpanel{position:static;max-height:46vh} .cols{grid-template-columns:1fr} .grid2{grid-template-columns:1fr} }
+header{padding-top:max(8px, env(safe-area-inset-top));padding-left:max(16px, env(safe-area-inset-left));padding-right:max(16px, env(safe-area-inset-right))}
+body{padding-bottom:env(safe-area-inset-bottom)}
+#installBtn{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:600}
+</style>
+</head>
+<body>
+<header>
+  <h1>Steel <span>Sections</span></h1>
+  <span class="grow"></span>
+  <span style="color:var(--muted);font-size:12px">AS/NZS 3679.1 · AS/NZS 1163 · ρ = 7850 kg/m³</span>
+  <button id="installBtn" hidden>Install app</button>
+  <button id="themeBtn" title="Toggle light/dark">◐</button>
+</header>
+
+<div class="wrap">
+  <aside class="panel listpanel">
+    <div class="search">
+      <input id="q" type="search" placeholder="310UB40, 100x100x5, 150PFC…" autocomplete="off" aria-label="Search sections">
+      <div class="chips" id="chips"></div>
+    </div>
+    <div class="list" id="list"></div>
+  </aside>
+
+  <main class="detail">
+    <section class="panel head" id="head"></section>
+    <div class="cols">
+      <section class="panel draw" id="draw"></section>
+      <section class="panel sec">
+        <div class="grid2">
+          <div><h3>Dimensions</h3><table id="dims"></table></div>
+          <div><h3>Mass &amp; surface</h3><table id="mass"></table></div>
+        </div>
+      </section>
+    </div>
+    <section class="panel sec">
+      <h3>Section properties <span style="text-transform:none;letter-spacing:0">(elastic, about the centroid)</span></h3>
+      <div class="grid2"><table id="propsX"></table><table id="propsY"></table></div>
+    </section>
+    <section class="panel sec">
+      <h3>Quantity</h3>
+      <div class="calc">
+        <label>Length each (mm)<input id="len" type="number" min="0" step="100" value="6000"></label>
+        <label>Quantity<input id="qty" type="number" min="0" step="1" value="1"></label>
+      </div>
+      <div class="out" id="qout"></div>
+    </section>
+    <section class="panel sec">
+      <h3>Plate &amp; flat bar</h3>
+      <div class="calc">
+        <label>Thickness (mm)<input id="pt" type="number" min="0" step="1" value="10"></label>
+        <label>Width (mm)<input id="pw" type="number" min="0" step="10" value="200"></label>
+        <label>Length (mm)<input id="pl" type="number" min="0" step="100" value="1000"></label>
+        <label>Quantity<input id="pq" type="number" min="0" step="1" value="1"></label>
+      </div>
+      <div class="out" id="pout"></div>
+    </section>
+    <p class="note">Sizes are the common Australian sections to AS/NZS 3679.1 (hot-rolled, 300PLUS) and AS/NZS 1163 (hollow, C350L0/C450L0); availability varies by supplier. Area, mass and section properties are calculated from the nominal dimensions (root and corner radii included, angle toe radii ignored) and agree with published tables to about 1%. Use the supplier's catalogue for design values.</p>
+  </main>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+/* ================= section data (nominal dimensions, mm) ================= */
+// UB / UC: [designation, d, bf, tf, tw, r1]  (designation carries the nominal kg/m)
+const UB = [
+  ['150UB14.0',150,75,7.0,5.0,8.0],['150UB18.0',155,75,9.5,6.0,8.0],['180UB16.1',173,90,7.0,4.5,8.9],['180UB18.1',175,90,8.0,5.0,8.9],
+  ['180UB22.2',179,90,10.0,6.0,8.9],['200UB18.2',198,99,7.0,4.5,11.0],['200UB22.3',202,133,7.0,5.0,8.9],['200UB25.4',203,133,7.8,5.8,8.9],
+  ['200UB29.8',207,134,9.6,6.3,8.9],['250UB25.7',248,124,8.0,5.0,12.0],['250UB31.4',252,146,8.6,6.1,8.9],['250UB37.3',256,146,10.9,6.4,8.9],
+  ['310UB32.0',298,149,8.0,5.5,13.0],['310UB40.4',304,165,10.2,6.1,11.4],['310UB46.2',307,166,11.8,6.7,11.4],['360UB44.7',352,171,9.7,6.9,11.4],
+  ['360UB50.7',356,171,11.5,7.3,11.4],['360UB56.7',359,172,13.0,8.0,11.4],['410UB53.7',403,178,10.9,7.6,11.4],['410UB59.7',406,178,12.8,7.8,11.4],
+  ['460UB67.1',454,190,12.7,8.5,11.4],['460UB74.6',457,190,14.5,9.1,11.4],['460UB82.1',460,191,16.0,9.9,11.4],['530UB82.0',528,209,13.2,9.6,14.0],
+  ['530UB92.4',533,209,15.6,10.2,14.0],['610UB101',602,228,14.8,10.6,14.0],['610UB113',607,228,17.3,11.2,14.0],['610UB125',612,229,19.6,11.9,14.0],
+];
+const UC = [
+  ['100UC14.8',97,99,7.0,5.0,10.0],['150UC23.4',152,152,6.8,6.1,8.9],['150UC30.0',158,153,9.4,6.6,8.9],['150UC37.2',162,154,11.5,8.1,8.9],
+  ['200UC46.2',203,203,11.0,7.3,11.4],['200UC52.2',206,204,12.5,8.0,11.4],['200UC59.5',210,205,14.2,9.3,11.4],['250UC72.9',254,254,14.2,8.6,13.0],
+  ['250UC89.5',260,256,17.3,10.5,13.0],['310UC96.8',308,305,15.4,9.9,16.5],['310UC118',315,307,18.7,11.9,16.5],['310UC137',321,309,21.7,13.8,16.5],
+  ['310UC158',327,310,25.0,15.4,16.5],
+];
+// PFC: [designation, d, bf, tf, tw, r1, nominal kg/m]
+const PFC = [
+  ['75PFC',75,40,6.1,3.8,8,5.92],['100PFC',100,50,6.7,4.2,8,8.33],['125PFC',125,65,7.5,4.7,8,11.9],['150PFC',150,75,9.5,6.0,10,17.7],
+  ['180PFC',180,75,11.0,6.0,12,20.9],['200PFC',200,75,12.0,6.0,12,22.9],['230PFC',230,75,12.0,6.5,12,25.1],['250PFC',250,90,15.0,8.0,12,35.5],
+  ['300PFC',300,90,16.0,8.0,14,40.1],['380PFC',380,100,17.5,10.0,14,55.2],
+];
+// Angles: equal [leg, t list], unequal [long, short, t list]; root radius by leg size
+const EA = [[25,[3,5]],[30,[3,5]],[40,[3,5]],[45,[3,5]],[50,[3,5,6,8]],[65,[5,6,8,10]],[75,[5,6,8,10]],[90,[6,8,10]],[100,[6,8,10,12]],
+  [125,[8,10,12,16]],[150,[10,12,16,19]],[200,[13,16,18,20,26]]];
+const UA = [[75,50,[5,6,8]],[100,75,[6,8,10]],[125,75,[6,8,10,12]],[150,90,[8,10,12,16]],[150,100,[10,12]]];
+const angleRoot = leg => leg <= 45 ? 5 : leg <= 75 ? 6 : leg <= 100 ? 8 : leg <= 125 ? 10 : leg <= 150 ? 13 : 15;
+// Hollow: SHS [b, t list], RHS [d, b, t list], CHS [OD, t list]
+const SHS = [[20,[1.6,2.0]],[25,[1.6,2.0,2.5,3.0]],[30,[1.6,2.0]],[35,[2.0,2.5,3.0]],[40,[1.6,2.0,2.5,3.0,4.0]],[50,[1.6,2.0,2.5,3.0,4.0,5.0]],
+  [65,[2.0,2.5,3.0,4.0,5.0,6.0]],[75,[2.5,3.0,3.5,4.0,5.0,6.0]],[89,[3.5,5.0,6.0]],[100,[3.0,4.0,5.0,6.0,9.0,10.0]],[125,[4.0,5.0,6.0,9.0,10.0]],
+  [150,[5.0,6.0,9.0,10.0]],[200,[5.0,6.0,9.0,10.0,12.5,16.0]],[250,[6.0,9.0,10.0,12.5,16.0]],[300,[8.0,10.0,12.5,16.0]]];
+const RHS = [[50,25,[1.6,2.0,2.5,3.0]],[65,35,[2.0,2.5,3.0]],[75,25,[1.6,2.0,2.5]],[75,50,[2.0,2.5,3.0,4.0,5.0,6.0]],[100,50,[2.0,2.5,3.0,3.5,4.0,5.0,6.0]],
+  [125,75,[3.0,4.0,5.0,6.0,9.0]],[150,50,[3.0,4.0,5.0,6.0]],[150,100,[4.0,5.0,6.0,9.0,10.0]],[200,100,[4.0,5.0,6.0,9.0,10.0]],
+  [250,150,[5.0,6.0,9.0,10.0,12.5,16.0]],[300,200,[6.0,8.0,10.0,12.5,16.0]],[400,200,[8.0,10.0,12.5,16.0]]];
+const CHS = [[21.3,[2.0,2.6,3.2]],[26.9,[2.3,2.6,3.2]],[33.7,[2.6,3.2,4.0]],[42.4,[2.6,3.2,4.0]],[48.3,[2.9,3.2,4.0,5.4]],[60.3,[2.9,3.6,4.5]],
+  [76.1,[3.2,3.6,4.5,5.9]],[88.9,[3.2,4.0,5.0,5.5]],[101.6,[3.2,4.0,5.0]],[114.3,[3.2,3.6,4.5,4.8,5.4,6.0]],[139.7,[3.0,3.5,5.0,5.4]],
+  [165.1,[3.0,3.5,5.0,5.4]],[168.3,[6.4,7.1]],[219.1,[4.8,6.4,8.2]],[273.1,[4.8,6.4,9.3]],[323.9,[6.4,9.5]]];
+
+/* ================= geometry ================= */
+const f1 = v => +v.toFixed(1), tstr = t => (Number.isInteger(t) ? t.toFixed(1) : String(t));
+function arc(pts, cx, cy, r, a0, a1, n = 12) { for (let i = 0; i <= n; i++) { const a = (a0 + (a1 - a0) * i / n) * Math.PI / 180; pts.push([cx + r * Math.cos(a), cy + r * Math.sin(a)]); } }
+// Rings are closed point lists: outer counter-clockwise, holes clockwise, so signed sums subtract the holes.
+function iRings(d, bf, tf, tw, r) {
+  const p = [], w = tw / 2;
+  p.push([-bf / 2, 0], [bf / 2, 0], [bf / 2, tf]); arc(p, w + r, tf + r, r, 270, 180);
+  arc(p, w + r, d - tf - r, r, 180, 90); p.push([bf / 2, d - tf], [bf / 2, d], [-bf / 2, d], [-bf / 2, d - tf]);
+  arc(p, -w - r, d - tf - r, r, 90, 0); arc(p, -w - r, tf + r, r, 0, -90); p.push([-bf / 2, tf]);
+  return [p];
+}
+function cRings(d, bf, tf, tw, r) {
+  const p = [[0, 0], [bf, 0], [bf, tf]]; arc(p, tw + r, tf + r, r, 270, 180); arc(p, tw + r, d - tf - r, r, 180, 90);
+  p.push([bf, d - tf], [bf, d], [0, d]); return [p];
+}
+function lRings(d, b, t, r) { const p = [[0, 0], [b, 0], [b, t]]; arc(p, t + r, t + r, r, 270, 180); p.push([t, d], [0, d]); return [p]; }
+function roundRect(b, d, r, cw) {
+  const p = [], x = b / 2, y = d / 2;
+  if (r <= 0) p.push([x, -y], [x, y], [-x, y], [-x, -y]);
+  else { arc(p, x - r, -y + r, r, -90, 0); arc(p, x - r, y - r, r, 0, 90); arc(p, -x + r, y - r, r, 90, 180); arc(p, -x + r, -y + r, r, 180, 270); }
+  return cw ? p.reverse() : p;
+}
+function circle(D, cw) { const p = []; for (let i = 0; i < 96; i++) { const a = i / 96 * 2 * Math.PI; p.push([D / 2 * Math.cos(a), D / 2 * Math.sin(a)]); } return cw ? p.reverse() : p; }
+
+// Area, centroid, second moments (incl. principal axes) and perimeters from polygon rings
+function props(rings) {
+  let A = 0, Sx = 0, Sy = 0, Ixx = 0, Iyy = 0, Ixy = 0;
+  const per = [];
+  for (const r of rings) {
+    let L = 0;
+    for (let i = 0; i < r.length; i++) {
+      const [x0, y0] = r[i], [x1, y1] = r[(i + 1) % r.length], c = x0 * y1 - x1 * y0;
+      A += c / 2; Sx += (x0 + x1) * c / 6; Sy += (y0 + y1) * c / 6;
+      Iyy += (x0 * x0 + x0 * x1 + x1 * x1) * c / 12; Ixx += (y0 * y0 + y0 * y1 + y1 * y1) * c / 12;
+      Ixy += (x0 * y1 + 2 * x0 * y0 + 2 * x1 * y1 + x1 * y0) * c / 24;
+      L += Math.hypot(x1 - x0, y1 - y0);
+    }
+    per.push(L);
+  }
+  const cx = Sx / A, cy = Sy / A;
+  const Ix = Ixx - A * cy * cy, Iy = Iyy - A * cx * cx, Ixyc = Ixy - A * cx * cy;
+  const avg = (Ix + Iy) / 2, rad = Math.hypot((Ix - Iy) / 2, Ixyc);
+  const all = rings.flat(), xs = all.map(p => p[0]), ys = all.map(p => p[1]);
+  const ymax = Math.max(...ys), ymin = Math.min(...ys), xmax = Math.max(...xs), xmin = Math.min(...xs);
+  return { A, cx, cy, Ix, Iy, Ixy: Ixyc, Iu: avg + rad, Iv: avg - rad, xmin, xmax, ymin, ymax,
+    Zx: Ix / Math.max(ymax - cy, cy - ymin), Zy: Iy / Math.max(xmax - cx, cx - xmin), rx: Math.sqrt(Ix / A), ry: Math.sqrt(Iy / A), rv: Math.sqrt((avg - rad) / A),
+    perOut: per[0], perIn: per.slice(1).reduce((s, v) => s + v, 0) };
+}
+
+/* ================= catalogue ================= */
+const ALL = [];
+for (const [n, d, bf, tf, tw, r1] of UB) ALL.push({ type: 'UB', name: n, grade: '300PLUS', nominal: +n.split('UB')[1], dims: { d, bf, tf, tw, r1 }, rings: iRings(d, bf, tf, tw, r1) });
+for (const [n, d, bf, tf, tw, r1] of UC) ALL.push({ type: 'UC', name: n, grade: '300PLUS', nominal: +n.split('UC')[1], dims: { d, bf, tf, tw, r1 }, rings: iRings(d, bf, tf, tw, r1) });
+for (const [n, d, bf, tf, tw, r1, m] of PFC) ALL.push({ type: 'PFC', name: n, grade: '300PLUS', nominal: m, dims: { d, bf, tf, tw, r1 }, rings: cRings(d, bf, tf, tw, r1) });
+for (const [b, ts] of EA) for (const t of ts) ALL.push({ type: 'EA', name: `${b}x${b}x${t} EA`, grade: '300PLUS', dims: { b1: b, b2: b, t, r1: angleRoot(b) }, rings: lRings(b, b, t, angleRoot(b)) });
+for (const [d, b, ts] of UA) for (const t of ts) ALL.push({ type: 'UA', name: `${d}x${b}x${t} UA`, grade: '300PLUS', dims: { b1: d, b2: b, t, r1: angleRoot(d) }, rings: lRings(d, b, t, angleRoot(d)) });
+// Hollow section outside corner radius: 2t up to 3 mm wall, 2.5t above (AS/NZS 1163 nominal)
+const ro = t => t <= 3 ? 2 * t : 2.5 * t;
+for (const [b, ts] of SHS) for (const t of ts) ALL.push({ type: 'SHS', name: `${b}x${b}x${tstr(t)} SHS`, grade: t < 2.5 || b <= 89 ? 'C450L0' : 'C350L0', dims: { d: b, b, t, ro: ro(t) }, rings: [roundRect(b, b, ro(t)), roundRect(b - 2 * t, b - 2 * t, ro(t) - t, true)] });
+for (const [d, b, ts] of RHS) for (const t of ts) ALL.push({ type: 'RHS', name: `${d}x${b}x${tstr(t)} RHS`, grade: d <= 150 ? 'C450L0' : 'C350L0', dims: { d, b, t, ro: ro(t) }, rings: [roundRect(b, d, ro(t)), roundRect(b - 2 * t, d - 2 * t, ro(t) - t, true)] });
+for (const [D, ts] of CHS) for (const t of ts) ALL.push({ type: 'CHS', name: `${D}x${tstr(t)} CHS`, grade: 'C350L0', dims: { D, t }, rings: [circle(D), circle(D - 2 * t, true)] });
+for (const s of ALL) { s.p = props(s.rings); s.mass = s.p.A * 7850e-6; s.key = s.name.toLowerCase().replace(/[×*]/g, 'x').replace(/\s+/g, ''); }
+
+const TYPES = [['all', 'All'], ['UB', 'UB'], ['UC', 'UC'], ['PFC', 'PFC'], ['EA', 'Equal angle'], ['UA', 'Unequal angle'], ['SHS', 'SHS'], ['RHS', 'RHS'], ['CHS', 'CHS']];
+const TYPE_NAME = { UB: 'Universal beams', UC: 'Universal columns', PFC: 'Parallel flange channels', EA: 'Equal angles', UA: 'Unequal angles', SHS: 'Square hollow sections', RHS: 'Rectangular hollow sections', CHS: 'Circular hollow sections' };
+
+/* ================= UI ================= */
+const $ = id => document.getElementById(id);
+let filter = 'all', sel = ALL.find(s => s.name === '310UB40.4');
+const fmt = (v, d = 0) => v.toLocaleString(undefined, { minimumFractionDigits: d, maximumFractionDigits: d });
+function renderList() {
+  const q = $('q').value.toLowerCase().replace(/[×*]/g, 'x').replace(/\s+/g, '');
+  const rows = ALL.filter(s => (filter === 'all' || s.type === filter) && (!q || s.key.includes(q) || s.type.toLowerCase() === q));
+  let html = '', last = '';
+  for (const s of rows) {
+    if (s.type !== last) { html += `<div class="grp">${TYPE_NAME[s.type]}</div>`; last = s.type; }
+    html += `<div class="item ${s === sel ? 'on' : ''}" data-i="${ALL.indexOf(s)}" tabindex="0"><b>${s.name}</b><span>${fmt(s.nominal ?? s.mass, 1)} kg/m</span></div>`;
+  }
+  $('list').innerHTML = html || '<div style="padding:14px;color:var(--muted)">No section matches. Try 310UB, 100x100 or 150PFC.</div>';
+  $('list').querySelectorAll('.item').forEach(el => { const go = () => { sel = ALL[+el.dataset.i]; renderList(); renderDetail(); }; el.onclick = go; el.onkeydown = e => { if (e.key === 'Enter') go(); }; });
+}
+function renderChips() {
+  $('chips').innerHTML = TYPES.map(([k, t]) => `<button data-k="${k}" class="${filter === k ? 'on' : ''}">${t}</button>`).join('');
+  $('chips').querySelectorAll('button').forEach(b => b.onclick = () => { filter = b.dataset.k; renderChips(); renderList(); });
+}
+const row = (label, sym, val, unit, copy) => `<tr><td>${label}</td><td class="sym">${sym}</td><td class="num" data-copy="${copy ?? val}">${val}${unit ? ' ' + unit : ''}</td></tr>`;
+function renderDetail() {
+  const s = sel, p = s.p, d = s.dims;
+  const hollow = ['SHS', 'RHS', 'CHS'].includes(s.type), angle = ['EA', 'UA'].includes(s.type);
+  $('head').innerHTML = `<div><h2>${s.name}</h2><div class="sub">${TYPE_NAME[s.type].replace(/s$/, '')} · typical grade ${s.grade}</div></div>
+    <div class="big"><b>${fmt(s.nominal ?? s.mass, 1)} kg/m</b><small>${s.nominal ? 'nominal (designation)' : 'calculated'}</small></div>`;
+  // dimensions
+  let dims = '';
+  if (s.type === 'UB' || s.type === 'UC' || s.type === 'PFC') dims = row('Depth', 'd', fmt(d.d, 0), 'mm') + row('Flange width', 'b<sub>f</sub>', fmt(d.bf, 0), 'mm') + row('Flange thickness', 't<sub>f</sub>', fmt(d.tf, 1), 'mm') + row('Web thickness', 't<sub>w</sub>', fmt(d.tw, 1), 'mm') + row('Root radius', 'r<sub>1</sub>', fmt(d.r1, 1), 'mm') + row('Depth between flanges', 'd<sub>1</sub>', fmt(d.d - 2 * d.tf, 1), 'mm');
+  else if (angle) dims = row('Leg', 'b<sub>1</sub>', fmt(d.b1, 0), 'mm') + row('Leg', 'b<sub>2</sub>', fmt(d.b2, 0), 'mm') + row('Thickness', 't', fmt(d.t, 1), 'mm') + row('Root radius', 'r<sub>1</sub>', fmt(d.r1, 1), 'mm');
+  else if (s.type === 'CHS') dims = row('Outside diameter', 'd<sub>o</sub>', fmt(d.D, 1), 'mm') + row('Wall thickness', 't', fmt(d.t, 1), 'mm') + row('Inside diameter', 'd<sub>i</sub>', fmt(d.D - 2 * d.t, 1), 'mm');
+  else dims = row('Depth', 'd', fmt(d.d, 0), 'mm') + row('Width', 'b', fmt(d.b, 0), 'mm') + row('Wall thickness', 't', fmt(d.t, 1), 'mm') + row('Outside corner radius', 'r<sub>o</sub>', fmt(d.ro, 1), 'mm');
+  $('dims').innerHTML = dims;
+  // mass and surface
+  const outside = p.perOut / 1000, both = (p.perOut + p.perIn) / 1000;
+  let mass = (s.nominal ? row('Nominal mass', 'm', fmt(s.nominal, 2), 'kg/m') : '') + row('Calculated mass', 'm', fmt(s.mass, 2), 'kg/m') + row('Gross area', 'A<sub>g</sub>', fmt(p.A, 0), 'mm²');
+  mass += row(hollow ? 'Outside surface' : 'Surface area', '', fmt(outside, 3), 'm²/m') + row('Surface per tonne', '', fmt(outside / ((s.nominal ?? s.mass) / 1000), 1), 'm²/t');
+  if (hollow) mass += row('Inside + outside (galv.)', '', fmt(both, 3), 'm²/m');
+  $('mass').innerHTML = mass;
+  // properties (Australian table units)
+  const I = v => fmt(v / 1e6, 2), Z = v => fmt(v / 1e3, 1), r = v => fmt(v, 1);
+  $('propsX').innerHTML = row('Second moment of area', 'I<sub>x</sub>', I(p.Ix), '10⁶ mm⁴') + row('Elastic modulus', 'Z<sub>x</sub>', Z(p.Zx), '10³ mm³') + row('Radius of gyration', 'r<sub>x</sub>', r(p.rx), 'mm');
+  let py = row('Second moment of area', 'I<sub>y</sub>', I(p.Iy), '10⁶ mm⁴') + row('Elastic modulus', 'Z<sub>y</sub>', Z(p.Zy), '10³ mm³') + row('Radius of gyration', 'r<sub>y</sub>', r(p.ry), 'mm');
+  if (angle) py += row('Min. principal I', 'I<sub>v</sub>', I(p.Iv), '10⁶ mm⁴') + row('Min. radius of gyration', 'r<sub>v</sub>', r(p.rv), 'mm');
+  if (s.type === 'PFC' || s.type === 'EA') py += row('Centroid from back', s.type === 'PFC' ? 'x<sub>c</sub>' : 'x<sub>c</sub> = y<sub>c</sub>', fmt(p.cx - p.xmin, 1), 'mm');
+  if (s.type === 'UA') py += row('Centroid from back of long leg', 'x<sub>c</sub>', fmt(p.cx - p.xmin, 1), 'mm') + row('Centroid from back of short leg', 'y<sub>c</sub>', fmt(p.cy - p.ymin, 1), 'mm');
+  $('propsY').innerHTML = py;
+  drawSection(s);
+  renderQty();
+  document.querySelectorAll('[data-copy]').forEach(td => { td.title = 'Click to copy'; td.onclick = () => copy(td.dataset.copy.replace(/,/g, '')); });
+}
+function drawSection(s) {
+  const p = s.p, W = 300, H = 300, pad = 44;
+  const w = p.xmax - p.xmin, h = p.ymax - p.ymin, k = Math.min((W - 2 * pad) / w, (H - 2 * pad) / h);
+  const ox = (W - w * k) / 2 - p.xmin * k, oy = (H + h * k) / 2 + p.ymin * k;
+  const P = ([x, y]) => `${(ox + x * k).toFixed(1)},${(oy - y * k).toFixed(1)}`;
+  const path = s.rings.map(r => 'M' + r.map(P).join('L') + 'Z').join('');
+  const x0 = ox + p.xmin * k, x1 = ox + p.xmax * k, y0 = oy - p.ymax * k, y1 = oy - p.ymin * k;
+  const cxs = ox + p.cx * k, cys = oy - p.cy * k;
+  const wlab = s.type === 'CHS' ? `Ø${s.dims.D}` : fmt(w, 0), hlab = fmt(h, 0);
+  $('draw').innerHTML = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Cross-section of ${s.name}">
+    <path d="${path}" fill="var(--steel)" fill-rule="evenodd" stroke="var(--steel-edge)" stroke-width="1.5" stroke-linejoin="round"/>
+    <g stroke="var(--dim)" stroke-width="1" fill="none"><path d="M${x0},${y1 + 18}H${x1}M${x0},${y1 + 12}v12M${x1},${y1 + 12}v12"/>${s.type === 'CHS' ? '' : `<path d="M${x1 + 18},${y0}V${y1}M${x1 + 12},${y0}h12M${x1 + 12},${y1}h12"/>`}</g>
+    <text x="${(x0 + x1) / 2}" y="${y1 + 33}" text-anchor="middle" font-size="12" fill="var(--dim)">${wlab}</text>
+    ${s.type === 'CHS' ? '' : `<text x="${x1 + 24}" y="${(y0 + y1) / 2}" font-size="12" fill="var(--dim)" transform="rotate(-90 ${x1 + 24} ${(y0 + y1) / 2})" text-anchor="middle" dy="10">${hlab}</text>`}
+    <g stroke="var(--accent)" stroke-width="1.2"><path d="M${cxs - 7},${cys}h14M${cxs},${cys - 7}v14"/></g>
+    <text x="${cxs + 6}" y="${cys - 6}" font-size="10" fill="var(--accent)">centroid</text></svg>`;
+}
+function renderQty() {
+  const L = Math.max(+$('len').value || 0, 0) / 1000, n = Math.max(+$('qty').value || 0, 0);
+  const kgm = sel.nominal ?? sel.mass, area = sel.p.perOut / 1000;
+  const tot = kgm * L * n;
+  $('qout').innerHTML = `<div><small>Each</small><b>${fmt(kgm * L, 1)} kg</b></div><div><small>Total mass</small><b>${tot >= 1000 ? fmt(tot / 1000, 3) + ' t' : fmt(tot, 1) + ' kg'}</b></div>` +
+    `<div><small>Total length</small><b>${fmt(L * n, 2)} m</b></div><div><small>Paint area</small><b>${fmt(area * L * n, 2)} m²</b></div>`;
+}
+function renderPlate() {
+  const t = +$('pt').value || 0, w = +$('pw').value || 0, l = +$('pl').value || 0, n = +$('pq').value || 0;
+  const perM2 = t * 7.85, perM = perM2 * w / 1000, each = perM * l / 1000;
+  $('pout').innerHTML = `<div><small>Per m²</small><b>${fmt(perM2, 2)} kg</b></div><div><small>Per metre (flat bar)</small><b>${fmt(perM, 2)} kg/m</b></div>` +
+    `<div><small>Each piece</small><b>${fmt(each, 2)} kg</b></div><div><small>Total</small><b>${fmt(each * n, 1)} kg</b></div>`;
+}
+let tt; function copy(v) { const done = () => { const t = $('toast'); t.textContent = `Copied ${v}`; t.classList.add('show'); clearTimeout(tt); tt = setTimeout(() => t.classList.remove('show'), 1400); }; try { navigator.clipboard.writeText(v).then(done, done); } catch { done(); } }
+
+$('q').oninput = () => { renderList(); const first = $('list').querySelector('.item'); if (first && !$('list').querySelector('.item.on')) { sel = ALL[+first.dataset.i]; renderList(); renderDetail(); } };
+['len', 'qty'].forEach(id => $(id).oninput = renderQty);
+['pt', 'pw', 'pl', 'pq'].forEach(id => $(id).oninput = renderPlate);
+$('themeBtn').onclick = () => { const root = document.documentElement; const dark = root.dataset.theme ? root.dataset.theme === 'dark' : matchMedia('(prefers-color-scheme: dark)').matches; root.dataset.theme = dark ? 'light' : 'dark'; };
+renderChips(); renderList(); renderDetail(); renderPlate();
+window.__steel = { ALL, props }; // for checking in devtools
+</script>
+<script>
+if ('serviceWorker' in navigator) addEventListener('load', () => navigator.serviceWorker.register('./sw.js').catch(() => {}));
+let installEvt = null;
+addEventListener('beforeinstallprompt', e => { e.preventDefault(); installEvt = e; document.getElementById('installBtn').hidden = false; });
+document.getElementById('installBtn').onclick = async () => { if (!installEvt) return; installEvt.prompt(); await installEvt.userChoice; installEvt = null; document.getElementById('installBtn').hidden = true; };
+addEventListener('appinstalled', () => { document.getElementById('installBtn').hidden = true; });
+</script>
+</body>
+</html>
